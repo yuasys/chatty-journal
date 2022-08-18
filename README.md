@@ -11,6 +11,8 @@
   <li>記号付きリスト</li>
   <li></li>
  </ul>
+ <p>画像の利用</p>
+ <div><img style="width:300px" src="images/oniyama-tonbo.jpg"></div>
 </details>
 
 <hr/>
