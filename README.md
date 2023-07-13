@@ -1,4 +1,5 @@
 # chatty-journal-yyyymmdd
+
 <hr/>
 <details>
 <summary><h2 style="display:inline">アコーディオンひな形</h2></summary>
@@ -16,5 +17,3 @@
 </details>
 
 <hr/>
-
-
