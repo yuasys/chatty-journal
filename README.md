@@ -1,4 +1,4 @@
-# chatty-journal-yyyymmdd
+# chatty-journal-yyyymmdd  
 
 <hr/>
 <details>
