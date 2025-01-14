@@ -20,6 +20,22 @@
       padding: 10px 0;
       text-align: center;
     }
+    nav {
+      text-align: center;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    nav li {
+      display: inline-block;
+      margin: 0 10px;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+    }
     main {
       padding: 20px;
     }
@@ -62,10 +78,17 @@
 
 <body>
 <header>
-  <h1>Rails Tutorial 学習帳</h1>
+  <h1>Railsl学習帳</h1>
+  <nav>
+    <ul>
+      <li><a href="/docs/index.html">Home</a></li>
+      <li><a href="/docs/RailsTutorialNote.html">Railsl学習帳</a></li>
+      <li><a href="/docs/about.html">About</a></li>
+    </ul>
+  </nav>
 </header>
 <main>
-  <h2 style="display:inline">Rails Tutorial 学習帳</h2>
+  <h2 style="display:inline">Railsl学習帳</h2>
   <p>Ruby on Rails（略称『Rails』）は、<b>プログラミング言語『Ruby』で書かれたフリーかつオープンソースのWeb開発フレームワーク</b>。<br />
     以下に学んだことを<b>受講生の立場で</b>メモしておく。（<a href="https://railstutorial.jp/chapters/beginning?version=7.0#cha-beginning">出典元
     </a>）
