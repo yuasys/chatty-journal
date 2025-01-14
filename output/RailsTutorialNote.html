@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Tutorial 学習帳</title>
+  <style>
+    body { 
+      margin: 0; 
+      padding: 0;
+      font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", "Meiryo", Osaka, "MS Pゴシック", "MS PGothic", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+    }
+    header {
+      background-color: #333;
+      color: #afc6af;
+      padding: 10px 0;
+      text-align: center;
+    }
+    main {
+      padding: 20px;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+    h2 {
+      font-size: 20px;
+      margin: 20px 0 10px;
+    }
+    h3 {
+      font-size: 18px;
+      margin: 20px 0 10px;
+    }
+    h4 {
+      font-size: 16px;
+      margin: 20px 0 10px;
+    }
+    h5 {
+      font-size: 14px;
+      margin: 20px 0 10px;
+    }
+    p {
+      margin: 10px 0;
+    }
+    ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 10px 0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Rails Tutorial 学習帳</h1>
+</header>
+<main>
+  <h2 style="display:inline">Rails Tutorial 学習帳</h2>
+  <p>Ruby on Rails（略称『Rails』）は、<b>プログラミング言語『Ruby』で書かれたフリーかつオープンソースのWeb開発フレームワーク</b>。<br />
+    以下に学んだことを<b>受講生の立場で</b>メモしておく。（<a href="https://railstutorial.jp/chapters/beginning?version=7.0#cha-beginning">出典元
+    </a>）
+  </p>
+
+  <h3>第１章　ゼロからデプロイまで</h3>
+
+  <h4>はじめに</h4>
+  <h5>目的</h5>
+  <p>このチュートリアルの目的＝Webサービス開発に必要な基礎知識を得ること。 </p>
+  <p>このチュートリアルは『<b>Ruby on Rails</b>』を題材にしている。<br />その理由は、<b>Webサービス開発に必要な基礎知識を得るのに、これ以上ふさわしいフレームワークが他に無いから</b>。</p>
+  <p><a href="https://youtu.be/IiUX2NGGZGc?si=1xgD7AZqPlPaBtxp">参考動画「私が Ruby on Rails 7 対応版を推す理由」
+    </a></p>
+  <h5>Railsの設計哲学</h5>
+  <blockquote>
+    <p><i>プログラミングの慣習をパターン化すること、不要な選択肢を外すこと、そして最適なデフォルト設定を提供することが大切であり、これらは生産性を劇的に向上させる。</i></p>
+  </blockquote>
+  <h5>Railsの始まり</h5>
+  <ul>
+    <li>Railsは、2003年に1人のWebエンジニアDHH（David Heinemeier Hansson）が仕事の合間に手掛けたことから始まった</li>
+    <li>DHHはデンマーク（北欧で海洋性気候、四季がはっきりしている）で生まれ育った人で、米国に移乗。
+    </li>
+  </ul>
+  <h5>Railsの絶え間ない進化</h5>
+  <ul>
+    <li>Rails 6では、並列テストや複数データベース対応などの高度な機能が追加</li>
+    <li>Rails 7.0では、HotwireやTurboといったフロントエンドの新しい技術と統合</li>
+    <li>さらに2023年10月にリリースされたRails 7.1では、Dockerを使った開発がしやすく</li>
+  </ul>
+  <h5>学習ロードマップ</h5>
+  <img src="https://railstutorial.jp/chapters/7.0/images/figures/study_map.png" alt="学習ロードマップ全体図" />
+
+
+  <h4>1.1 前提知識</h4>
+  <p><b>Railsチュートリアル</b>は、<b>SNS</b>を開発しながら、<b>Ruby on Rails</b>を用いたWebアプリケーション開発を体系的に学べる実践的な教材。</p>
+  <p><b>学習内容</b></p>
+  <ul>
+    <li><b>Ruby</b>をはじめとしたプログラミング言語の基礎</li>
+    <li><b>テスト駆動開発</b>による高品質なコード作成</li>
+    <li><b>Git</b>や<b>テストを使ったコード管理</b></li>
+    <li><b>HTML</b>、<b>CSS</b>、<b>JavaScript</b>、<b>SQL</b>といったWeb開発の基礎知識</li>
+    <li><b>セキュリティ</b>を意識した設計と実装</li>
+    <li><b>AWS</b>などのクラウドサービスを使ったWebサービスの公開</li>
+  </ul>
+  <p><b>学習の進め方</b></p>
+  <ul>
+    <li><b>プログラミング未経験者</b>でも<b>Progate</b>との連携で基礎を学べる。</li>
+    <li>各章で<b>難しい</b>と感じたら、関連する基礎コースに戻って学習できる。</li>
+    <li><b>ローカル環境</b>での開発に役立つ<b>実践入門シリーズ</b>も充実しており、効率的に学習できる。</li>
+    <li><b>解説動画</b>や<b>質問対応サービス</b>も用意されている。</li>
+    <li><b><a href="https://railsguides.jp/">Ruby on Railsガイド</a></b>で、より詳細な情報を調べることができる。</li>
+  </ul>
+  <p><b>Railsチュートリアルの構成</b></p>
+  <p>本チュートリアルは、実際に動くWebアプリケーションを開発しながら学ぶ構成になっている</p>
+  <ul>
+    <li><b>シンプルなアプリ</b>から<b>本格的なSNS</b>まで、段階的に開発を進める</li>
+    <li><b>ユーザー登録</b>、<b>ログイン</b>、<b>メール認証</b>など、Webサービスで一般的な機能を学ぶ</li>
+    <li><b>Twitter</b>のような機能も実装し、実践的なスキルを習得できる</li>
+  </ul>
+
+
+  <h4>1.2 さっそく動かす</h4>
+
+  <h5>1.2.1 開発環境</h5>
+
+
+  <h5>1.2.2 Railsをインストールする</h5>
+
+
+
+  <h4>1.3 最初のアプリケーション</h4>
+
+  <h5>1.3.1 Bundler</h5>
+
+
+  <h5>1.3.2 rails server</h5>
+
+
+  <h5>1.3.3 Model-View-Controller（MVC）</h5>
+
+
+  <h5>1.3.4 Hello, world!</h5>
+
+
+
+  <h4>1.4 Gitによるバージョン管理</h4>
+
+  <h5>1.4.1 Gitのセットアップ</h5>
+
+
+  <h5>1.4.2 Gitのメリット</h5>
+
+
+  <h5>1.4.3 GitHub</h5>
+
+
+  <h5>1.4.4 ブランチ、編集、コミット、マージ</h5>
+
+
+
+  <h4>1.5 デプロイする</h4>
+
+
+  <h4>1.6 最後に </h4>
+
+  <h5>1.6.1 本章のまとめ</h5>
+
+
+
+  <h4>1.7 本チュートリアルで用いている表記の慣習</h4>
+
+
+</main>
+</body>
+
+</html>
