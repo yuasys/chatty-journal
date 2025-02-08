@@ -1,1 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja-JP">
 
+<head>
+  <meta charset="UTF-8">
+  <title>Tailwind-Login</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+
+<body>
+  <!-- partial:index.partial.html -->
+  <div class="w-full lg:w-3/12 px-4 ">
+    <div class="flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-slate-300 border-0">
+      <div class="flex-auto px-4 lg:px-10 py-10 pt-10">
+        <div class="text-gray-500 text-center mb-5 text-xl">
+          Login
+        </div>
+        <form>
+          <div class="w-full mb-3">
+            <label class="block uppercase text-gray-800 text-xs mb-2" for="grid-password">Email</label><input
+              type="email"
+              class="border-0 px-3 py-3 placeholder-gray-400 text-gray-700 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full"
+              placeholder="Email" />
+          </div>
+          <div class="w-full mb-3">
+            <label class="block uppercase text-gray-700 text-xs mb-2" for="grid-password">Password</label><input
+              type="password"
+              class="border-0 px-3 py-3 placeholder-gray-400 text-gray-700 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full"
+              placeholder="Password" />
+          </div>
+          <div>
+            <label class="inline-flex items-center cursor-pointer"><input id="customCheckLogin" type="checkbox"
+                class="border-0 rounded text-gray-800 ml-1 w-5 h-5" /><span class="ml-2 text-sm text-gray-700">Remember
+                me</span></label>
+          </div>
+          <div class="text-center mt-6">
+            <!-- bg-slate-700 text-white active:bg-gray-700 text-sm font-bold uppercase px-6 py-3 rounded-lg shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full" -->
+            <button
+              class = "rounded bg-slate-700 text-white active:bg-gray-700 text-sm font-bold uppercase px-6 py-3 shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full"
+              type="button">
+              ログイン
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
