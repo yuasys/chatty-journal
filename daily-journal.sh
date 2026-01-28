@@ -23,7 +23,8 @@ TODAY_YEAR=$(date +%Y)
 TODAY_MONTH=$(date +%m)
 
 # Header Date: e.g., 2026年01月17日（土）
-HEADER_DATE=$(date "+%Y年%m月%d日（%a）")
+# Force Japanese Locale for this command
+HEADER_DATE=$(LC_TIME=ja_JP.UTF-8 date "+%Y年%m月%d日（%a）")
 
 # Previous/Next Day (Calculated from Today)
 YESTERDAY_YMD=$(date -v-1d +%Y-%m-%d)
@@ -86,6 +87,7 @@ echo "Created journal entry: $TARGET_FILE"
 
 # 5. Git Operations
 echo "Executing Git Operations..."
+git pull origin main
 git add .
 git commit -m "Add journal for ${TODAY_YMD}"
 git push origin main
