@@ -92,7 +92,9 @@ cat <<EOF > "$TARGET_FILE"
 ### [◀️前日へ](${PREV_DAY_LINK})    [翌日へ▶️](${NEXT_DAY_LINK})
 
 ---
+
 ---
+
 ### [◀️前の記事へ](${PREV_ARTICLE_LINK})    [次の記事へ▶️](${NEXT_ARTICLE_LINK})
 
 EOF
