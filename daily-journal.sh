@@ -17,18 +17,32 @@ else
 fi
 
 # 2. 日付計算
-# Mac (BSD) date command uses -v
-TODAY_YMD=$(date +%Y-%m-%d)
-TODAY_YEAR=$(date +%Y)
-TODAY_MONTH=$(date +%m)
+# 最新の日誌ファイルを検索して、その翌日を「今日」とする
+# Find all journal files: YYYY/MM/YYYY-MM-DD.md
+# Search depth 3 (./YYYY/MM/file.md)
+LATEST_FILE=$(find . -maxdepth 3 -type f -name "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md" | sort | tail -1)
+
+if [[ -n "$LATEST_FILE" ]]; then
+    LATEST_DATE=$(basename "$LATEST_FILE" .md)
+    # TODAY is Latest + 1 day
+    TODAY_YMD=$(date -j -v+1d -f "%Y-%m-%d" "$LATEST_DATE" "+%Y-%m-%d")
+    echo "Found latest entry: $LATEST_DATE. Creating entry for: $TODAY_YMD"
+else
+    # Failure fallback: use real today
+    TODAY_YMD=$(date +%Y-%m-%d)
+    echo "No existing entries found. Creating entry for today: $TODAY_YMD"
+fi
+
+TODAY_YEAR=${TODAY_YMD:0:4}
+TODAY_MONTH=${TODAY_YMD:5:2}
 
 # Header Date: e.g., 2026年01月17日（土）
-# Force Japanese Locale for this command
-HEADER_DATE=$(LC_TIME=ja_JP.UTF-8 date "+%Y年%m月%d日（%a）")
+# Force Japanese Locale for this command, parse calculated TODAY_YMD
+HEADER_DATE=$(LC_TIME=ja_JP.UTF-8 date -j -f "%Y-%m-%d" "$TODAY_YMD" "+%Y年%m月%d日（%a）")
 
-# Previous/Next Day (Calculated from Today)
-YESTERDAY_YMD=$(date -v-1d +%Y-%m-%d)
-TOMORROW_YMD=$(date -v+1d +%Y-%m-%d)
+# Previous/Next Day (Calculated from TODAY_YMD)
+YESTERDAY_YMD=$(date -j -v-1d -f "%Y-%m-%d" "$TODAY_YMD" "+%Y-%m-%d")
+TOMORROW_YMD=$(date -j -v+1d -f "%Y-%m-%d" "$TODAY_YMD" "+%Y-%m-%d")
 
 # Generate Paths for Links
 PREV_DAY_LINK="${URL_BASE}/${YESTERDAY_YMD:0:4}/${YESTERDAY_YMD:5:2}/${YESTERDAY_YMD}.md"
