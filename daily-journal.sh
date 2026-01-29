@@ -49,10 +49,10 @@ PREV_DAY_LINK="${URL_BASE}/${YESTERDAY_YMD:0:4}/${YESTERDAY_YMD:5:2}/${YESTERDAY
 NEXT_DAY_LINK="${URL_BASE}/${TOMORROW_YMD:0:4}/${TOMORROW_YMD:5:2}/${TOMORROW_YMD}.md"
 
 # 3. 前の記事 (Existing latest journal) logic
-# Ref: Logic imported from test.sh to ensure we link to a valid post
+# Ref: Logic imported from find_latest_valid_journal.sh to ensure we link to a valid post
 setopt extended_glob
 
-# Search for potential files (recursive) checking date >= 2025-04-08 (from test.sh logic)
+# Search for potential files (recursive) checking date >= 2025-04-08 (from find_latest_valid_journal.sh logic)
 # We want files *before* the TODAY_YMD we are about to create.
 matched_files=()
 MIN_DATE_FILE="2025-04-08.md"
