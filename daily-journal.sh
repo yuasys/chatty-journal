@@ -49,28 +49,62 @@ PREV_DAY_LINK="${URL_BASE}/${YESTERDAY_YMD:0:4}/${YESTERDAY_YMD:5:2}/${YESTERDAY
 NEXT_DAY_LINK="${URL_BASE}/${TOMORROW_YMD:0:4}/${TOMORROW_YMD:5:2}/${TOMORROW_YMD}.md"
 
 # 3. 前の記事 (Existing latest journal) logic
-# Find all journal files that are NOT today's file and sort them reverse to find the latest
-# Pattern: YYYY/MM/YYYY-MM-DD.md
-# (N) null glob, (On) sort by name descending
+# Ref: Logic imported from test.sh to ensure we link to a valid post
+setopt extended_glob
 
-journal_files=( [0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md(NOn) )
+# Search for potential files (recursive) checking date >= 2025-04-08 (from test.sh logic)
+# We want files *before* the TODAY_YMD we are about to create.
+matched_files=()
+MIN_DATE_FILE="2025-04-08.md"
 
-PREV_ARTICLE_LINK=""
-NEXT_ARTICLE_LINK="${NEXT_DAY_LINK}" # Default to Next Day since next article usually doesn't exist yet
+# Find files recursively
+# Note: In the original script we're at REPO_ROOT.
+# We iterate over all md files matching convention.
+for file in ./**/[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9].md(N); do
+    filename=$(basename "$file")
+    
+    # Must be >= MIN_DATE_FILE
+    [[ "$filename" < "$MIN_DATE_FILE" ]] && continue
 
-# Iterate to find the first one that is less than today
-for f in "${journal_files[@]}"; do
-    basename=$(basename "$f" .md)
-    if [[ "$basename" < "$TODAY_YMD" ]]; then
-        PREV_ARTICLE_LINK="${URL_BASE}/${f}"
-        break
+    # Must be < TODAY_YMD (strictly previous)
+    [[ "$filename" < "${TODAY_YMD}.md" ]] || continue
+    
+    # Check for content validity (3 dashes, content between 2nd and 3rd dash)
+    dash_lines=($(grep -n "^---" "$file" | cut -d: -f1))
+    
+    if [[ ${#dash_lines} -ge 3 ]]; then
+        start_line=${dash_lines[2]}
+        end_line=${dash_lines[3]}
+        
+        # Count non-empty lines between the 2nd and 3rd dash
+        content_count=$(sed -n "$((start_line + 1)),$((end_line - 1))p" "$file" | grep -v "^\s*$" | wc -l)
+        
+        if [[ $content_count -ge 3 ]]; then
+            matched_files+=("$file")
+        fi
     fi
 done
 
-# Fallback if no specific previous article found
-if [[ -z "$PREV_ARTICLE_LINK" ]]; then
+PREV_ARTICLE_LINK=""
+if [[ ${#matched_files} -gt 0 ]]; then
+    # Sort and take the last one
+    last_post=$(echo "${matched_files[@]}" | tr ' ' '\n' | sort | tail -n 1)
+    
+    # Ensure it starts with ./ if needed, though URL construction handles it.
+    # Convert to URL. remove leading ./ if present for cleanliness
+    clean_path=${last_post#./}
+    PREV_ARTICLE_LINK="${URL_BASE}/${clean_path}"
+else
+    # Fallback
     PREV_ARTICLE_LINK="${URL_BASE}/"
 fi
+
+# 2. NEXT_ARTICLE_LINK Logic
+# 2. NEXT_ARTICLE_LINK Logic
+# Default to TODAY_YMD as requested
+# TARGET_DIR is defined below, so construct path manually here or wait.
+# constructing manually:
+NEXT_ARTICLE_LINK="${URL_BASE}/${TODAY_YEAR}/${TODAY_MONTH}/${TODAY_YMD}.md"
 
 # 4. Generate Content
 TARGET_DIR="${TODAY_YEAR}/${TODAY_MONTH}"
