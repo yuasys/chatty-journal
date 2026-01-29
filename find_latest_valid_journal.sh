@@ -50,7 +50,7 @@ if [[ ${#matched_files} -gt 0 ]]; then
     echo "変数 last_post に代入しました:" >&2
     echo "last_post = \"$last_post\"" >&2
     
-    # 環境変数としてエクスポート（source test.sh で実行した場合に使用可能）
+    # 環境変数としてエクスポート（source find_latest_valid_journal.sh で実行した場合に使用可能）
     export last_post
     
     # 変数の値だけを標準出力に出力（他のスクリプトから値だけを取得できるようにする）
