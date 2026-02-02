@@ -120,7 +120,6 @@ cat <<EOF > "$TARGET_FILE"
 ---
 
 ### [◀️前の記事へ](${PREV_ARTICLE_LINK})&emsp;&emsp;&emsp;&emsp;[次の記事へ▶️](${NEXT_ARTICLE_LINK})
-
 EOF
 
 echo "Created journal entry: $TARGET_FILE"
