@@ -109,7 +109,6 @@ fi
 
 # テンプレートの書き込み
 cat <<EOF > "$TARGET_FILE"
-
 # ${HEADER_DATE}
 
 ---
