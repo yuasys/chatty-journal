@@ -150,8 +150,14 @@ for ((i=1; i<=total; i++)); do
     fi
 done
 
+# 6. Git操作
+echo "Executing Git Operations..."
+git pull origin main
+git add .
+git commit -m "Update navigation links"
+git push origin main
+
 echo ""
 echo "✓ Successfully processed $total articles."
+echo "✓ Changes have been committed and pushed to GitHub."
 echo ""
-echo "Changes have been made. Review with 'git diff' and commit manually."
-echo "To commit automatically next time, run: AUTO_COMMIT=true ./update-navigation.sh"
