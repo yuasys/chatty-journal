@@ -37,8 +37,8 @@ is_valid_article() {
     # 2番目と3番目の '---' の間のコンテンツをカウント
     local content_count=$(sed -n "$((start_line + 1)),$((end_line - 1))p" "$file" | grep -v "^\s*$" | wc -l)
     
-    # 3行以上のコンテンツが必要
-    [[ $content_count -ge 3 ]] && return 0
+    # 1行以上のコンテンツが必要
+    [[ $content_count -ge 1 ]] && return 0
     
     return 1
 }
@@ -85,16 +85,16 @@ update_file_navigation() {
     # '---' セパレータの位置を特定
     local dash_lines=($(grep -n "^---" "$file" | cut -d: -f1))
     
-    if [[ ${#dash_lines[@]} -lt 4 ]]; then
-        echo "Warning: $file does not have 4 '---' separators. Skipping..."
+    if [[ ${#dash_lines[@]} -lt 3 ]]; then
+        echo "Warning: $file does not have 3 '---' separators. Skipping..."
         return 1
     fi
     
-    local nav_start=${dash_lines[4]}  # 4番目の '---' の行（インデックスは1始まり）
+    local nav_start=${dash_lines[3]}  # 3番目の '---' の行（インデックスは1始まり）
     
     # ナビゲーション部分を新しい内容に置き換え
     {
-        # 4番目の '---' までをそのまま出力
+        # 3番目の '---' までをそのまま出力
         sed -n "1,${nav_start}p" "$file"
         
         # 新しいナビゲーションを出力
@@ -111,7 +111,7 @@ update_file_navigation() {
 # 5. ナビゲーションリンクの更新
 echo "Updating navigation links..."
 
-for i in {1..$total}; do
+for ((i=1; i<=total; i++)); do
     current="${valid_articles[$i]}"
     current_path=${current#./}
     
@@ -128,8 +128,9 @@ for i in {1..$total}; do
     fi
     
     # リンクURLの生成
-    prev_link="${URL_BASE}/"
-    next_link="${URL_BASE}/"
+    # デフォルトは自分自身へのリンク
+    prev_link="${URL_BASE}/${current_path}"
+    next_link="${URL_BASE}/${current_path}"
     
     if [[ -n "$prev" ]]; then
         prev_path=${prev#./}
