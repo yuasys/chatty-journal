@@ -104,8 +104,8 @@ is_valid_article() {
     # 2番目と3番目の '---' の間のコンテンツをカウント
     local content_count=$(sed -n "$((start_line + 1)),$((end_line - 1))p" "$file" | grep -v "^\s*$" | wc -l)
     
-    # 3行以上のコンテンツが必要
-    [[ $content_count -ge 3 ]] && return 0
+    # 1行以上のコンテンツが必要
+    [[ $content_count -ge 1 ]] && return 0
     
     return 1
 }
@@ -113,8 +113,8 @@ is_valid_article() {
 
 **要件:**
 - `---` セパレータが3つ以上
-- 2番目と3番目の間に3行以上の非空行コンテンツ
-- `daily-journal.sh` と完全に同じ判定基準
+- 2番目と3番目の間に1行以上の非空行コンテンツ
+- 記事の本文が存在することを最低限保証する
 
 #### Phase 3: ナビゲーションリンクの更新
 
@@ -124,7 +124,7 @@ update_navigation_links() {
     
     echo "Updating navigation for $total valid articles..."
     
-    for i in {1..$total}; do
+    for ((i=1; i<=total; i++)); do
         local current="${valid_articles[$i]}"
         local current_path=${current#./}
         
@@ -141,8 +141,9 @@ update_navigation_links() {
         fi
         
         # リンクURLの生成
-        local prev_link="${URL_BASE}/"
-        local next_link="${URL_BASE}/"
+        # デフォルトは自分自身へのリンク
+        local prev_link="${URL_BASE}/${current_path}"
+        local next_link="${URL_BASE}/${current_path}"
         
         if [[ -n "$prev" ]]; then
             local prev_path=${prev#./}
@@ -163,9 +164,9 @@ update_navigation_links() {
 ```
 
 **要件:**
-- 配列のインデックスで前後の記事を特定
-- 最初の記事: 前の記事リンクはルートへ
-- 最後の記事: 次の記事リンクはルートへ
+- 配列のインデックスで前後の記事を特定（Zshの1始まりインデックスを利用）
+- 最初の記事: 前の記事リンクは自分自身（またはルート）へ
+- 最後の記事: 次の記事リンクは自分自身（またはルート）へ
 - 中間の記事: 前後の記事への有効なリンク
 
 #### Phase 4: ファイル内容の更新
@@ -182,17 +183,16 @@ update_file_navigation() {
     # '---' セパレータの位置を特定
     local dash_lines=($(grep -n "^---" "$file" | cut -d: -f1))
     
-    if [[ ${#dash_lines[@]} -lt 4 ]]; then
-        echo "Warning: $file does not have 4 '---' separators. Skipping..."
+    if [[ ${#dash_lines[@]} -lt 3 ]]; then
+        echo "Warning: $file does not have 3 '---' separators. Skipping..."
         return 1
     fi
     
-    local nav_start=${dash_lines[3]}  # 4番目の '---' の行
-    local file_end=$(wc -l < "$file" | tr -d ' ')
+    local nav_start=${dash_lines[3]}  # 3番目の '---' の行
     
     # ナビゲーション部分を新しい内容に置き換え
     {
-        # 4番目の '---' までをそのまま出力
+        # 3番目の '---' までをそのまま出力
         sed -n "1,${nav_start}p" "$file"
         
         # 新しいナビゲーションを出力
@@ -206,10 +206,10 @@ update_file_navigation() {
 ```
 
 **要件:**
-- 4番目の `---` セパレータまでの内容を保持
+- 3番目の `---` セパレータまでの内容を保持
 - その後のナビゲーション部分を新しいリンクで置き換え
 - 一時ファイルを使用して安全に更新
-- エラーハンドリング（4つの `---` がない場合はスキップ）
+- エラーハンドリング（3つの `---` がない場合はスキップ）
 
 ## 4. エッジケース処理
 
@@ -217,9 +217,9 @@ update_file_navigation() {
 
 ```bash
 if [[ $total -eq 1 ]]; then
-    # 前も次もルートへのリンク
-    prev_link="${URL_BASE}/"
-    next_link="${URL_BASE}/"
+    # 前も次も自分自身（または設定されたデフォルト）へのリンク
+    prev_link="${URL_BASE}/${current_path}"
+    next_link="${URL_BASE}/${current_path}"
 fi
 ```
 
@@ -236,8 +236,8 @@ fi
 
 ```bash
 # update_file_navigation 関数内でチェック
-if [[ ${#dash_lines[@]} -lt 4 ]]; then
-    echo "Warning: $file does not have 4 '---' separators. Skipping..."
+if [[ ${#dash_lines[@]} -lt 3 ]]; then
+    echo "Warning: $file does not have 3 '---' separators. Skipping..."
     return 1
 fi
 ```
@@ -255,73 +255,48 @@ fi
 
 ## 5. エラーハンドリング
 
-### 実装すべきチェック
+### 実装されているチェック
 1. リポジトリディレクトリの存在確認
-2. ファイル更新権限の確認
-3. バックアップ作成（オプション）
-4. 更新失敗時のロールバック
+2. ディレクトリ移動の成功確認
+3. ファイルが有効な構造（3つの `---`）を持っているかの確認
+4. 有効な記事が見つからない場合の終了処理
 
 ### エラーメッセージ例
 ```bash
-echo "Error: Repository directory not found: $REPO_ROOT"
-echo "Warning: $file does not have proper structure. Skipping..."
-echo "Error: Failed to update $file"
+echo "Repository directory not found: $REPO_ROOT"
+echo "Warning: $file does not have 3 '---' separators. Skipping..."
+echo "No valid articles found. Nothing to update."
 ```
 
-## 6. Git統合（オプション）
+## 6. Git操作
+
+最新のスクリプトでは、実行の最後に以下のGit操作を自動で行います。
 
 ```bash
-# オプション: 自動コミット
-AUTO_COMMIT=${AUTO_COMMIT:-false}
-
-if [[ "$AUTO_COMMIT" == "true" ]]; then
-    echo "Committing changes..."
-    git add .
-    git commit -m "Update navigation links for all entries"
-    git push origin main
-else
-    echo "Changes staged but not committed. Review and commit manually."
-    git add .
-fi
+echo "Executing Git Operations..."
+git pull origin main
+git add .
+git commit -m "Update navigation links"
+git push origin main
 ```
 
 **要件:**
-- 環境変数 `AUTO_COMMIT` で制御
-- デフォルトは手動コミット（安全性重視）
-- 自動モードでは commit & push
+- リモートの最新状態を pull する
+- 全ての変更をステージングする
+- 固定のメッセージでコミットする
+- mainブランチへ push する
 
 ## 7. daily-journal.sh との統合
 
-### 方法1: 直接呼び出し
+### 推奨される方法: 直接呼び出し
 
-`daily-journal.sh` の最後に追加:
+`daily-journal.sh` の最後に追加することで、新規記事作成時に全体の整合性を保つことができます。
+
 ```bash
 # daily-journal.sh の末尾
 echo "Updating all navigation links..."
 ./update-navigation.sh
 ```
-
-### 方法2: Git hook
-
-`.git/hooks/post-commit` に設定:
-```bash
-#!/bin/zsh
-cd /Users/yuasys/source/chatty-journal
-./update-navigation.sh
-git add .
-git commit --amend --no-edit
-```
-
-### 方法3: 手動実行
-
-```bash
-# 記事を手動で編集した後
-./update-navigation.sh
-git add .
-git commit -m "Update navigation links"
-```
-
-**推奨**: まずは方法3（手動実行）でテストし、安定後に方法1を採用
 
 ## 8. 使用例
 
@@ -333,20 +308,15 @@ chmod +x update-navigation.sh
 
 ### 実行結果例
 ```
-Updating navigation for 15 valid articles...
-Updated: 2026/01/2026-01-15.md
-Updated: 2026/01/2026-01-16.md
-Updated: 2026/01/2026-01-20.md
-...
-Updated: 2026/02/2026-02-04.md
-Updated: 2026/02/2026-02-05.md
-Successfully updated 15 articles.
-Changes staged. Review and commit manually.
-```
-
-### 自動コミットモード
-```bash
-AUTO_COMMIT=true ./update-navigation.sh
+Collecting valid articles...
+Found 34 valid articles.
+Updating navigation links...
+  [1/34] Updated: 2025/12/2025-12-13.md
+  [2/34] Updated: 2025/12/2025-12-20.md
+  ...
+Executing Git Operations...
+✓ Successfully processed 34 articles.
+✓ Changes have been committed and pushed to GitHub.
 ```
 
 ## 9. パフォーマンス考慮
