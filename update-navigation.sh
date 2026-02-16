@@ -43,9 +43,10 @@ is_valid_article() {
     return 1
 }
 
-# 3. 有効な記事の収集
-echo "Collecting valid articles..."
+# 3. 記事の収集
+echo "Collecting articles..."
 valid_articles=()
+all_articles=()
 
 # 全てのマークダウンファイルを検索
 for file in ./**/[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9].md(N); do
@@ -54,7 +55,10 @@ for file in ./**/[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9].md(N); do
     # 最小日付フィルタ
     [[ "$filename" < "$MIN_DATE_FILE" ]] && continue
     
-    # 有効性チェック
+    # 全記事リストに追加
+    all_articles+=("$file")
+    
+    # 有効性チェックして有効記事リストに追加
     if is_valid_article "$file"; then
         valid_articles+=("$file")
     fi
@@ -62,16 +66,18 @@ done
 
 # 日付順にソート
 valid_articles=($(printf '%s\n' "${valid_articles[@]}" | sort))
+all_articles=($(printf '%s\n' "${all_articles[@]}" | sort))
 
-total=${#valid_articles[@]}
+total_valid=${#valid_articles[@]}
+total_all=${#all_articles[@]}
 
 # 有効な記事が0の場合
-if [[ $total -eq 0 ]]; then
+if [[ $total_valid -eq 0 ]]; then
     echo "No valid articles found. Nothing to update."
     exit 0
 fi
 
-echo "Found $total valid articles."
+echo "Found $total_valid valid articles out of $total_all total files."
 
 # 4. ファイル更新関数
 update_file_navigation() {
@@ -79,15 +85,50 @@ update_file_navigation() {
     local prev_link="$2"
     local next_link="$3"
     
-    # 一時ファイルを作成
-    local temp_file="${file}.tmp"
-    
-    # '---' セパレータの位置を特定
+    # '---' セパレータのチェックと作成
+    # 完全に空のファイルやseparatorが足りないファイルの場合、末尾に追記する形で対応
     local dash_lines=($(grep -n "^---" "$file" | cut -d: -f1))
     
+    local temp_file="${file}.tmp"
+    
     if [[ ${#dash_lines[@]} -lt 3 ]]; then
-        echo "Warning: $file does not have 3 '---' separators. Skipping..."
-        return 1
+        # 3つ未満の場合、ファイルの内容を保持しつつ、強制的にナビゲーションブロックを追加
+        # 既存の内容が空なら初期化、あれば末尾に追加
+        
+        # 既存の内容を一時ファイルへ（バックアップ用ではないが読み込み用）
+        cp "$file" "$temp_file"
+        
+        # ファイルが空、または行数が少ない場合の処理
+        # ここでは簡易的に、最終行にナビゲーションを追加する
+        # ただし、フォーマットを整えるために separator を追加する
+        
+        {
+            cat "$file"
+            
+            # 最終行が空行でなければ空行追加
+            if [[ -s "$file" ]] && [[ $(tail -c 1 "$file" | wc -l) -eq 0 ]]; then
+                echo ""
+            fi
+            
+            # まだ separator が2つ未満なら、必要な分追加してナビゲーションエリアを作る
+            # しかし、既存の構造を壊すリスクがあるため、
+            # シンプルに「末尾にナビゲーションリンクを追記（または置換）」する方針にする
+            
+            # 既にナビゲーションリンクっぽい行があるか確認して削除したいが、
+            # 構造が崩れている場合は難しい。
+            # ここでは「3つ目の---がない＝無効記事」前提で、
+            # 末尾に sep + nav を追加する
+            
+            echo ""
+            echo "---"
+            echo ""
+            echo "### [◀️前の記事へ](${prev_link})&emsp;&emsp;&emsp;&emsp;[次の記事へ▶️](${next_link})"
+            
+        } > "${temp_file}.new"
+        
+        mv "${temp_file}.new" "$file"
+        rm -f "$temp_file"
+        return 0
     fi
     
     local nav_start=${dash_lines[3]}  # 3番目の '---' の行（インデックスは1始まり）
@@ -111,24 +152,39 @@ update_file_navigation() {
 # 5. ナビゲーションリンクの更新
 echo "Updating navigation links..."
 
-for ((i=1; i<=total; i++)); do
-    current="${valid_articles[$i]}"
+for current in "${all_articles[@]}"; do
+    current_filename=$(basename "$current")
     current_path=${current#./}
     
-    # 前の記事（存在しない場合は空）
+    # 前の有効記事を探す
     prev=""
-    if [[ $i -gt 1 ]]; then
-        prev="${valid_articles[$((i-1))]}"
-    fi
+    # 配列を逆順に走査して、現在より小さい最大のものを探すのが効率的だが
+    # bash/zshの配列操作で簡易実装：
+    # valid_articles はソート済みなので、currentより小さい最後の要素がprev
     
-    # 次の記事（存在しない場合は空）
+    for v in "${valid_articles[@]}"; do
+        v_name=$(basename "$v")
+        if [[ "$v_name" < "$current_filename" ]]; then
+            prev="$v"
+        else
+            # current以上になったら終了（ソートされているため）
+            break
+        fi
+    done
+    
+    # 次の有効記事を探す
     next=""
-    if [[ $i -lt $total ]]; then
-        next="${valid_articles[$((i+1))]}"
-    fi
+    for v in "${valid_articles[@]}"; do
+        v_name=$(basename "$v")
+        if [[ "$v_name" > "$current_filename" ]]; then
+            next="$v"
+            # 最初に見つかった大きい要素がnext
+            break
+        fi
+    done
     
     # リンクURLの生成
-    # デフォルトは自分自身へのリンク
+    # デフォルトは自分自身へのリンク（無効記事の場合は特に、前後がない場合の挙動として）
     prev_link="${URL_BASE}/${current_path}"
     next_link="${URL_BASE}/${current_path}"
     
@@ -144,9 +200,9 @@ for ((i=1; i<=total; i++)); do
     
     # ファイル内のナビゲーション部分を更新
     if update_file_navigation "$current" "$prev_link" "$next_link"; then
-        echo "  [$i/$total] Updated: $current_path"
+        echo "  Updated: $current_path"
     else
-        echo "  [$i/$total] Skipped: $current_path"
+        echo "  Failed: $current_path"
     fi
 done
 
