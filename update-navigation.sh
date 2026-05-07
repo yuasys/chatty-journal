@@ -8,7 +8,8 @@
 # 1. 基本設定
 REPO_ROOT="/Users/yuasys/source/chatty-journal"
 URL_BASE="https://github.com/yuasys/chatty-journal/blob/main"
-MIN_DATE_FILE="2025-04-08.md"
+# 処理対象を動的に決定（実行時から約2ヶ月前より新しい記事のみ）
+MIN_DATE_FILE=$(date -j -v-2m "+%Y-%m-%d.md")
 
 # ディレクトリ移動
 if [[ -d "$REPO_ROOT" ]]; then
