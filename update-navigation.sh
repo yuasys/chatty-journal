@@ -85,68 +85,45 @@ update_file_navigation() {
     local file="$1"
     local prev_link="$2"
     local next_link="$3"
-    
-    # '---' セパレータのチェックと作成
-    # 完全に空のファイルやseparatorが足りないファイルの場合、末尾に追記する形で対応
+
     local dash_lines=($(grep -n "^---" "$file" | cut -d: -f1))
-    
     local temp_file="${file}.tmp"
-    
+
+    # --- が3つ未満のファイルは不正なフォーマットとみなし、更新しない
     if [[ ${#dash_lines[@]} -lt 3 ]]; then
-        # 3つ未満の場合、ファイルの内容を保持しつつ、強制的にナビゲーションブロックを追加
-        # 既存の内容が空なら初期化、あれば末尾に追加
-        
-        # 既存の内容を一時ファイルへ（バックアップ用ではないが読み込み用）
-        cp "$file" "$temp_file"
-        
-        # ファイルが空、または行数が少ない場合の処理
-        # ここでは簡易的に、最終行にナビゲーションを追加する
-        # ただし、フォーマットを整えるために separator を追加する
-        
-        {
-            cat "$file"
-            
-            # 最終行が空行でなければ空行追加
-            if [[ -s "$file" ]] && [[ $(tail -c 1 "$file" | wc -l) -eq 0 ]]; then
-                echo ""
-            fi
-            
-            # まだ separator が2つ未満なら、必要な分追加してナビゲーションエリアを作る
-            # しかし、既存の構造を壊すリスクがあるため、
-            # シンプルに「末尾にナビゲーションリンクを追記（または置換）」する方針にする
-            
-            # 既にナビゲーションリンクっぽい行があるか確認して削除したいが、
-            # 構造が崩れている場合は難しい。
-            # ここでは「3つ目の---がない＝無効記事」前提で、
-            # 末尾に sep + nav を追加する
-            
-            echo ""
-            echo "---"
-            echo ""
-            echo "### [◀️前の記事へ](${prev_link})&emsp;&emsp;&emsp;&emsp;[次の記事へ▶️](${next_link})"
-            
-        } > "${temp_file}.new"
-        
-        mv "${temp_file}.new" "$file"
-        rm -f "$temp_file"
-        return 0
+        echo "    - Warning: Invalid format in '$file' (less than 3 '---' separators). Skipping." >&2
+        return 1 # 失敗ステータス
     fi
-    
-    local nav_start=${dash_lines[3]}  # 3番目の '---' の行（インデックスは1始まり）
-    
+
+    # 3番目の '---' と、もしあれば4番目の '---' の間のナビゲーションブロックを置換する
+    local nav_start_line=${dash_lines[3]}
+    local nav_end_line
+    if [[ ${#dash_lines[@]} -ge 4 ]]; then
+        nav_end_line=${dash_lines[4]}
+    else
+        # 4番目の '---' がなければ、ファイルの最後までが対象
+        nav_end_line=$(wc -l < "$file")
+        ((nav_end_line++)) # 最終行を含めるため
+    fi
+
     # ナビゲーション部分を新しい内容に置き換え
     {
         # 3番目の '---' までをそのまま出力
-        sed -n "1,${nav_start}p" "$file"
-        
+        sed -n "1,${nav_start_line}p" "$file"
+
         # 新しいナビゲーションを出力
         echo ""
         echo "### [◀️前の記事へ](${prev_link})&emsp;&emsp;&emsp;&emsp;[次の記事へ▶️](${next_link})"
+
+        # 4番目の '---' があれば、それ以降を出力
+        if [[ ${#dash_lines[@]} -ge 4 ]]; then
+            sed -n "${nav_end_line},\$p" "$file"
+        fi
     } > "$temp_file"
-    
+
     # 一時ファイルで元のファイルを置き換え
     mv "$temp_file" "$file"
-    
+
     return 0
 }
 
