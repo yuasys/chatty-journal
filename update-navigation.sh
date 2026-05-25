@@ -8,13 +8,13 @@
 # 1. 基本設定
 REPO_ROOT="/Users/yuasys/source/chatty-journal"
 URL_BASE="https://github.com/yuasys/chatty-journal/blob/main"
-# 処理対象を動的に決定（実行時から約2ヶ月前より新しい記事のみ）
+# 処理対象を動的に決定（実行時から約6ヶ月前より新しい記事のみ）
 if date --version >/dev/null 2>&1; then
     # GNU date (Linux)
-    MIN_DATE_FILE=$(date -d "2 months ago" "+%Y-%m-%d.md")
+    MIN_DATE_FILE=$(date -d "6 months ago" "+%Y-%m-%d.md")
 else
     # BSD date (macOS)
-    MIN_DATE_FILE=$(date -j -v-2m "+%Y-%m-%d.md")
+    MIN_DATE_FILE=$(date -j -v-6m "+%Y-%m-%d.md")
 fi
 
 # ディレクトリ移動
